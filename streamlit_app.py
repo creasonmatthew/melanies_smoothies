@@ -1,6 +1,7 @@
 # Import python packages
 import streamlit as st
 import requests
+import pandas as pd
 from snowflake.snowpark.functions import col
 
 # Write directly to the app
@@ -15,7 +16,9 @@ st.write('The name on your Smoothie will be:', name_on_order)
 
 cnx = st.connection("snowflake")
 session = cnx.session()
-my_dataframe = session.sql("select FRUIT_NAME FROM smoothies.public.fruit_options").select(col('FRUIT_NAME'))
+my_dataframe = session.sql("select FRUIT_NAME FROM smoothies.public.fruit_options").select(col('FRUIT_NAME'),col('SEARCH_ON'))
+pd_df = my_dataframe.to_pandas()
+st.dataframe(pd_df)
 # st.dataframe(data=my_dataframe, use_container_width=True)
 
 # option = st.selectbox(
@@ -34,6 +37,7 @@ if ingredients_list:
 
     for fruit_chosen in ingredients_list:
         ingredients_string += fruit_chosen + ' '
+        st.subheader(f"{fruit_chosen} Nutrition Information")
         smoothiefroot_response = requests.get(f"https://my.smoothiefroot.com/api/fruit/{fruit_chosen}")
         sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
 
